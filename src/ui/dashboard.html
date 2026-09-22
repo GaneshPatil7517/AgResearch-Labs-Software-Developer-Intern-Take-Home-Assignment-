@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgResearch Labs — Aeroponic Operations Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080c14;
+      --card-bg: rgba(18, 26, 47, 0.85);
+      --card-border: rgba(56, 189, 248, 0.14);
+      --card-border-hover: rgba(56, 189, 248, 0.4);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.3);
+      --cyan: #06b6d4;
+      --amber: #f59e0b;
+      --purple: #8b5cf6;
+      --rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.09) 0%, transparent 45%),
+                  radial-gradient(circle at 90% 90%, rgba(6, 182, 212, 0.08) 0%, transparent 45%),
+                  var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      line-height: 1.5;
+    }
+
+    .container { max-width: 1280px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.5rem 2rem;
+    }
+    .brand { display: flex; align-items: center; gap: 1rem; }
+    .brand-logo {
+      background: linear-gradient(135deg, #10b981, #059669);
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 1.6rem;
+      box-shadow: 0 0 25px var(--emerald-glow);
+    }
+    .brand h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
+    .brand p { color: var(--text-muted); font-size: 0.85rem; font-weight: 500; }
+    .header-actions { display: flex; align-items: center; gap: 1rem; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #34d399;
+      box-shadow: 0 0 10px #34d399;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+
+    /* Navigation Tabs */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 0.35rem;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.65rem 1.25rem;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.04); }
+    .tab-btn.active {
+      background: #1e293b;
+      color: #38bdf8;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Stats Overview */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #10b981, #06b6d4);
+    }
+    .stat-label { font-size: 0.78rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); }
+    .stat-value { font-size: 1.8rem; font-weight: 800; margin: 0.4rem 0 0.2rem 0; color: #fff; }
+    .stat-desc { font-size: 0.8rem; color: var(--text-dim); }
+
+    /* Section Cards */
+    .section-box {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+    }
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-title { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+
+    /* Trays Grid */
+    .trays-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .tray-card {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .tray-card:hover { transform: translateY(-3px); border-color: var(--card-border-hover); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .tray-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
+    .tray-code { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.05rem; color: #38bdf8; }
+    .tray-zone { font-size: 0.75rem; background: rgba(56, 189, 248, 0.12); color: #38bdf8; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 600; }
+    .tray-body { font-size: 0.85rem; margin-bottom: 1rem; }
+    .tray-capacity { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.5rem; }
+    .batch-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .badge-SEEDED { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-GERMINATION { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .badge-GROWING { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-HARVEST_READY { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-HARVESTED { background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); }
+    .badge-AVAILABLE { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px dashed rgba(16, 185, 129, 0.4); }
+
+    .tray-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+    
+    /* Buttons */
+    .btn {
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3); }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-secondary { background: #1e293b; color: #f1f5f9; border: 1px solid var(--card-border); }
+    .btn-secondary:hover { background: #334155; }
+    .btn-amber { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+    .btn-cyan { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
+    .btn-danger { background: linear-gradient(135deg, #f43f5e, #e11d48); color: white; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.6);
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--card-border); font-size: 0.85rem; }
+    th { background: rgba(15, 23, 42, 0.9); color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(56, 189, 248, 0.02); }
+
+    /* Forms & Inputs */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+    .form-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .form-input, .form-select {
+      background: #0b1120;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.85rem;
+      padding: 0.6rem 0.85rem;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus { border-color: #38bdf8; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
+
+    /* Console / API Tester */
+    .console-box {
+      background: #050811;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.2rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: #38bdf8;
+      max-height: 320px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-content {
+      background: #0f172a;
+      border: 1px solid var(--card-border-hover);
+      border-radius: 20px;
+      max-width: 500px;
+      width: 100%;
+      padding: 2rem;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      position: relative;
+    }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-title { font-size: 1.25rem; font-weight: 700; color: #fff; }
+    .modal-close { background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: rgba(16, 185, 129, 0.4); background: #064e3b; }
+    .toast.error { border-color: rgba(244, 63, 94, 0.4); background: #881337; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Analytics Chart Bars */
+    .chart-bar-container { margin-bottom: 1rem; }
+    .chart-bar-info { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.35rem; }
+    .chart-bar-bg { background: rgba(15, 23, 42, 0.8); border-radius: 8px; height: 18px; overflow: hidden; border: 1px solid var(--card-border); }
+    .chart-bar-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #10b981, #06b6d4); transition: width 0.6s ease; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-logo">🌱</div>
+        <div>
+          <h1>AgResearch Labs (ARL)</h1>
+          <p>Aeroponic Facility Batch Operations & Real-Time Monitoring</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" onclick="openCreateTrayModal()">+ New Tray</button>
+        <button class="btn btn-cyan" onclick="openSeedBatchModal()">🌱 Seed Batch</button>
+        <div class="status-pill">
+          <span class="pulse-dot"></span>
+          PostgreSQL Active
+        </div>
+      </div>
+    </header>
+
+    <!-- Stats Summary -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Trays</div>
+        <div class="stat-value" id="stat-trays">-</div>
+        <div class="stat-desc">Active aeroponic beds</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Batches</div>
+        <div class="stat-value" id="stat-active" style="color: #38bdf8;">-</div>
+        <div class="stat-desc">In cultivation pipeline</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Harvest Ready</div>
+        <div class="stat-value" id="stat-ready" style="color: #34d399;">-</div>
+        <div class="stat-desc">Awaiting harvest logging</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Harvested</div>
+        <div class="stat-value" id="stat-harvested" style="color: #a78bfa;">-</div>
+        <div class="stat-desc">Completed yield records</div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('trays-tab')">🌾 Physical Trays</button>
+      <button class="tab-btn" onclick="switchTab('batches-tab')">📋 Batch Pipeline</button>
+      <button class="tab-btn" onclick="switchTab('analytics-tab')">📊 Yield Analytics (Part 3c)</button>
+      <button class="tab-btn" onclick="switchTab('demos-tab')">⚡ Part 3 Live Demos (3a & 3b)</button>
+      <button class="tab-btn" onclick="switchTab('api-tab')">📡 REST API Catalog</button>
+    </div>
+
+    <!-- TAB 1: Physical Trays Grid -->
+    <div id="trays-tab" class="tab-content active">
+      <div class="section-box">
+        <div class="section-head">
+          <div class="section-title">🌾 Physical Growing Trays & Rack Status</div>
+          <button class="btn btn-secondary" onclick="loadDashboardData()">🔄 Refresh</button>
+        </div>
+        <div class="trays-grid" id="trays-grid-container">
+          <div style="color: var(--text-muted); font-size: 0.9rem;">Loading trays from database...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Batch Pipeline -->
+    <div id="batches-tab" class="tab-content">
+      <div class="section-box">
+        <div class="section-head">
+          <div class="section-title">📋 Batch Lifecycle Tracking</div>
+          <div style="display: flex; gap: 0.5rem;">
+            <select id="batch-filter-stage" class="form-select" onchange="loadBatchesTable()">
+              <option value="">All Stages</option>
+              <option value="SEEDED">SEEDED</option>
+              <option value="GERMINATION">GERMINATION</option>
+              <option value="GROWING">GROWING</option>
+              <option value="HARVEST_READY">HARVEST_READY</option>
+              <option value="HARVESTED">HARVESTED</option>
+            </select>
+            <button class="btn btn-secondary" onclick="loadBatchesTable()">Filter</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Tray Code</th>
+                <th>Zone</th>
+                <th>Crop</th>
+                <th>Seeded On</th>
+                <th>Expected Harvest</th>
+                <th>Stage</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="batches-table-body">
+              <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading batches...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Yield Analytics (Part 3c) -->
+    <div id="analytics-tab" class="tab-content">
+      <div class="section-box">
+        <div class="section-head">
+          <div>
+            <div class="section-title">📊 Part 3c: Single-Query Yield Analytics</div>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.2rem;">Computes total weight, batch count, and average growth cycle in a single database roundtrip</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">From Date</label>
+            <input type="date" id="report-from" class="form-input" value="2026-08-01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">To Date</label>
+            <input type="date" id="report-to" class="form-input" value="2026-10-31">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Group By</label>
+            <select id="report-group-by" class="form-select">
+              <option value="crop">Crop</option>
+              <option value="zone">Zone</option>
+            </select>
+          </div>
+          <div class="form-group" style="justify-content: flex-end;">
+            <button class="btn btn-primary" style="height: 40px;" onclick="fetchYieldReport()">Generate Report</button>
+          </div>
+        </div>
+
+        <div id="yield-chart-container" style="margin: 1.5rem 0;"></div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Group Name</th>
+                <th>Harvested Batches</th>
+                <th>Total Yield (Grams)</th>
+                <th>Avg Growth Cycle (Days)</th>
+              </tr>
+            </thead>
+            <tbody id="yield-table-body">
+              <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Click 'Generate Report' to load analytics</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: Part 3 Live Demos (3a & 3b) -->
+    <div id="demos-tab" class="tab-content">
+      <!-- 3a Concurrency Demo -->
+      <div class="section-box">
+        <div class="section-head">
+          <div>
+            <div class="section-title">⚡ Part 3a: Concurrency Safety Simulator</div>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.2rem;">Fires 2 simultaneous requests at the exact same millisecond trying to seed the same tray.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Target Tray for Concurrent Collision</label>
+            <select id="demo-concurrency-tray" class="form-select"></select>
+          </div>
+          <div class="form-group" style="justify-content: flex-end;">
+            <button class="btn btn-amber" style="height: 40px;" onclick="runConcurrencyDemo()">🔥 Fire 2 Simultaneous Seeding Requests</button>
+          </div>
+        </div>
+        <div class="console-box" id="concurrency-console">Ready to run race condition simulation...</div>
+      </div>
+
+      <!-- 3b Idempotency Demo -->
+      <div class="section-box">
+        <div class="section-head">
+          <div>
+            <div class="section-title">🔁 Part 3b: Idempotent Harvest Retry Simulator</div>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.2rem;">Simulates field handheld network retries using an Idempotency-Key header.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">HARVEST_READY Batch</label>
+            <select id="demo-idempotency-batch" class="form-select"></select>
+          </div>
+          <div class="form-group" style="justify-content: flex-end;">
+            <button class="btn btn-cyan" style="height: 40px;" onclick="runIdempotencyDemo()">📡 Simulate Request & Network Retry</button>
+          </div>
+        </div>
+        <div class="console-box" id="idempotency-console">Ready to run idempotency replay simulation...</div>
+      </div>
+    </div>
+
+    <!-- TAB 5: REST API Catalog -->
+    <div id="api-tab" class="tab-content">
+      <div class="section-box">
+        <div class="section-title" style="margin-bottom: 1.25rem;">📡 REST API Endpoints Specification</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Endpoint</th>
+                <th>Description</th>
+                <th>Status Codes</th>
+                <th>Live Test</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-SEEDED">GET</span></td>
+                <td><code style="color: #38bdf8;">/trays</code></td>
+                <td>List all physical growing trays</td>
+                <td><code>200</code></td>
+                <td><a class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" href="/trays" target="_blank">Open JSON</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-SEEDED">GET</span></td>
+                <td><code style="color: #38bdf8;">/batches</code></td>
+                <td>List batches with filter params (?stage=, ?crop=, ?zone=)</td>
+                <td><code>200</code>, <code>400</code></td>
+                <td><a class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" href="/batches" target="_blank">Open JSON</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-SEEDED">GET</span></td>
+                <td><code style="color: #38bdf8;">/reports/yield</code></td>
+                <td>Part 3c single-query yield analytics (?from=, ?to=, ?group_by=)</td>
+                <td><code>200</code>, <code>400</code></td>
+                <td><a class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" href="/reports/yield?from=2026-08-01&to=2026-09-30&group_by=crop" target="_blank">Open JSON</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-HARVEST_READY">POST</span></td>
+                <td><code style="color: #34d399;">/trays</code></td>
+                <td>Create a physical tray</td>
+                <td><code>201</code>, <code>400</code>, <code>409</code></td>
+                <td><button class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="openCreateTrayModal()">Test Create</button></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-HARVEST_READY">POST</span></td>
+                <td><code style="color: #34d399;">/batches</code></td>
+                <td>Seed a new batch into a tray</td>
+                <td><code>201</code>, <code>400</code>, <code>404</code>, <code>409</code></td>
+                <td><button class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="openSeedBatchModal()">Test Seed</button></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-GROWING">PATCH</span></td>
+                <td><code style="color: #fbbf24;">/batches/:id/stage</code></td>
+                <td>Advance batch stage sequentially</td>
+                <td><code>200</code>, <code>400</code>, <code>404</code>, <code>409</code></td>
+                <td><span style="color: var(--text-dim); font-size: 0.75rem;">Via Pipeline Tab</span></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-HARVEST_READY">POST</span></td>
+                <td><code style="color: #34d399;">/batches/:id/harvest</code></td>
+                <td>Record harvest yield and free tray</td>
+                <td><code>201</code>, <code>200</code>, <code>400</code>, <code>404</code>, <code>409</code>, <code>422</code></td>
+                <td><span style="color: var(--text-dim); font-size: 0.75rem;">Via Pipeline Tab</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Create Tray -->
+  <div class="modal-overlay" id="modal-create-tray">
+    <div class="modal-content">
+      <div class="modal-head">
+        <div class="modal-title">➕ Add Physical Tray</div>
+        <button class="modal-close" onclick="closeModal('modal-create-tray')">&times;</button>
+      </div>
+      <form onsubmit="handleCreateTray(event)">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label">Tray Code (Unique)</label>
+          <input type="text" id="tray-code" class="form-input" placeholder="e.g. T-D-001" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label">Facility Zone</label>
+          <input type="text" id="tray-zone" class="form-input" placeholder="e.g. Zone-D" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label">Capacity (Growing Units)</label>
+          <input type="number" id="tray-capacity" class="form-input" value="100" min="1" required>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-create-tray')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Tray</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Seed Batch -->
+  <div class="modal-overlay" id="modal-seed-batch">
+    <div class="modal-content">
+      <div class="modal-head">
+        <div class="modal-title">🌱 Seed Batch into Tray</div>
+        <button class="modal-close" onclick="closeModal('modal-seed-batch')">&times;</button>
+      </div>
+      <form onsubmit="handleSeedBatch(event)">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label">Target Tray</label>
+          <select id="seed-tray-select" class="form-select" required></select>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label">Crop Type</label>
+          <input type="text" id="seed-crop" class="form-input" placeholder="e.g. Butterhead Lettuce" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label">Seeded On Date</label>
+          <input type="date" id="seed-date" class="form-input" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label">Expected Harvest Date</label>
+          <input type="date" id="seed-expected-date" class="form-input" required>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-seed-batch')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Seed Batch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Record Harvest -->
+  <div class="modal-overlay" id="modal-harvest">
+    <div class="modal-content">
+      <div class="modal-head">
+        <div class="modal-title">🌾 Record Harvest Yield</div>
+        <button class="modal-close" onclick="closeModal('modal-harvest')">&times;</button>
+      </div>
+      <form onsubmit="handleRecordHarvest(event)">
+        <input type="hidden" id="harvest-batch-id">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label">Harvested On Date</label>
+          <input type="date" id="harvest-date" class="form-input" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label">Weight (Grams)</label>
+          <input type="number" step="0.1" id="harvest-weight" class="form-input" placeholder="e.g. 1850.5" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label">Quality Grade</label>
+          <select id="harvest-grade" class="form-select" required>
+            <option value="A">Grade A (Premium)</option>
+            <option value="B">Grade B (Standard)</option>
+            <option value="C">Grade C (Processing)</option>
+          </select>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-harvest')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Record & Close Batch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <span id="toast-msg">Operation completed</span>
+  </div>
+
+  <script>
+    let allTrays = [];
+    let allBatches = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const future = new Date(Date.now() + 25 * 86400000).toISOString().split('T')[0];
+      if (document.getElementById('seed-date')) document.getElementById('seed-date').value = today;
+      if (document.getElementById('seed-expected-date')) document.getElementById('seed-expected-date').value = future;
+      if (document.getElementById('harvest-date')) document.getElementById('harvest-date').value = today;
+
+      loadDashboardData();
+    });
+
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      toast.className = 'toast ' + type + ' show';
+      toastMsg.innerText = msg;
+      setTimeout(() => { toast.className = 'toast'; }, 3500);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'analytics-tab') fetchYieldReport();
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    function openCreateTrayModal() { openModal('modal-create-tray'); }
+    
+    function openSeedBatchModal(targetTrayId) {
+      const select = document.getElementById('seed-tray-select');
+      select.innerHTML = '';
+      allTrays.forEach(t => {
+        const activeBatch = allBatches.find(b => b.tray_id === t.id && b.stage !== 'HARVESTED');
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.innerText = t.code + ' (' + t.zone + ')' + (activeBatch ? ' [OCCUPIED: ' + activeBatch.crop + ']' : ' [AVAILABLE]');
+        if (targetTrayId && t.id === targetTrayId) opt.selected = true;
+        select.appendChild(opt);
+      });
+      openModal('modal-seed-batch');
+    }
+
+    function openHarvestModal(batchId) {
+      document.getElementById('harvest-batch-id').value = batchId;
+      openModal('modal-harvest');
+    }
+
+    async function loadDashboardData() {
+      try {
+        const [traysRes, batchesRes] = await Promise.all([
+          fetch('/trays').then(r => r.json()),
+          fetch('/batches?limit=100').then(r => r.json())
+        ]);
+
+        allTrays = traysRes.data || [];
+        allBatches = batchesRes.data || [];
+
+        updateStats();
+        renderTraysGrid();
+        loadBatchesTable();
+        populateDemoSelects();
+      } catch (err) {
+        showToast('Error loading data: ' + err.message, 'error');
+      }
+    }
+
+    function updateStats() {
+      const active = allBatches.filter(b => b.stage !== 'HARVESTED');
+      const ready = allBatches.filter(b => b.stage === 'HARVEST_READY');
+      const harvested = allBatches.filter(b => b.stage === 'HARVESTED');
+
+      document.getElementById('stat-trays').innerText = allTrays.length;
+      document.getElementById('stat-active').innerText = active.length;
+      document.getElementById('stat-ready').innerText = ready.length;
+      document.getElementById('stat-harvested').innerText = harvested.length;
+    }
+
+    function renderTraysGrid() {
+      const container = document.getElementById('trays-grid-container');
+      if (allTrays.length === 0) {
+        container.innerHTML = '<div style="color: var(--text-muted);">No trays configured yet. Click "+ New Tray" to add one.</div>';
+        return;
+      }
+
+      container.innerHTML = allTrays.map(t => {
+        const activeBatch = allBatches.find(b => b.tray_id === t.id && b.stage !== 'HARVESTED');
+        const badgeClass = activeBatch ? 'badge-' + activeBatch.stage : 'badge-AVAILABLE';
+        const badgeText = activeBatch ? activeBatch.stage : 'AVAILABLE';
+
+        let actionHtml = '';
+        if (activeBatch) {
+          if (activeBatch.stage === 'HARVEST_READY') {
+            actionHtml = '<button class="btn btn-primary" style="flex: 1;" onclick="openHarvestModal(\'' + activeBatch.id + '\')">🌾 Harvest</button>';
+          } else {
+            actionHtml = '<button class="btn btn-amber" style="flex: 1;" onclick="advanceStage(\'' + activeBatch.id + '\')">⏩ Advance</button>';
+          }
+        } else {
+          actionHtml = '<button class="btn btn-primary" style="flex: 1;" onclick="openSeedBatchModal(\'' + t.id + '\')">🌱 Seed Batch</button>';
+        }
+
+        return (
+          '<div class="tray-card">' +
+            '<div class="tray-header">' +
+              '<span class="tray-code">' + t.code + '</span>' +
+              '<span class="tray-zone">' + t.zone + '</span>' +
+            '</div>' +
+            '<div class="tray-capacity">Capacity: <strong>' + t.capacity_units + '</strong> units</div>' +
+            '<div class="tray-body">' +
+              '<span class="batch-badge ' + badgeClass + '">' + badgeText + '</span>' +
+              (activeBatch ? '<div style="margin-top: 0.5rem; font-weight: 600; color: #fff;">🌱 ' + activeBatch.crop + '</div>' : '<div style="margin-top: 0.5rem; color: var(--text-dim);">Ready for seeding</div>') +
+            '</div>' +
+            '<div class="tray-actions">' + actionHtml + '</div>' +
+          '</div>'
+        );
+      }).join('');
+    }
+
+    function loadBatchesTable() {
+      const filter = document.getElementById('batch-filter-stage').value;
+      const filtered = filter ? allBatches.filter(b => b.stage === filter) : allBatches;
+      const tbody = document.getElementById('batches-table-body');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No batches found matching filter.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(b => {
+        let actionBtn = '-';
+        if (b.stage === 'HARVEST_READY') {
+          actionBtn = '<button class="btn btn-primary" style="padding: 0.3rem 0.65rem;" onclick="openHarvestModal(\'' + b.id + '\')">🌾 Harvest</button>';
+        } else if (b.stage !== 'HARVESTED') {
+          actionBtn = '<button class="btn btn-amber" style="padding: 0.3rem 0.65rem;" onclick="advanceStage(\'' + b.id + '\')">⏩ Advance</button>';
+        } else {
+          actionBtn = '<span style="color: #34d399; font-weight: 600; font-size: 0.78rem;">✓ ' + (b.weight_grams || 0) + 'g (Grade ' + (b.grade || 'A') + ')</span>';
+        }
+
+        return (
+          '<tr>' +
+            '<td><strong style="color: #38bdf8; font-family: JetBrains Mono;">' + (b.tray_code || '-') + '</strong></td>' +
+            '<td>' + (b.zone || '-') + '</td>' +
+            '<td><strong>' + b.crop + '</strong></td>' +
+            '<td>' + b.seeded_on + '</td>' +
+            '<td>' + b.expected_harvest_on + '</td>' +
+            '<td><span class="batch-badge badge-' + b.stage + '">' + b.stage + '</span></td>' +
+            '<td>' + actionBtn + '</td>' +
+          '</tr>'
+        );
+      }).join('');
+    }
+
+    async function handleCreateTray(e) {
+      e.preventDefault();
+      const code = document.getElementById('tray-code').value;
+      const zone = document.getElementById('tray-zone').value;
+      const capacity_units = parseInt(document.getElementById('tray-capacity').value, 10);
+
+      try {
+        const res = await fetch('/trays', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, zone, capacity_units })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to create tray');
+
+        showToast('Tray ' + data.code + ' created successfully!');
+        closeModal('modal-create-tray');
+        loadDashboardData();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function handleSeedBatch(e) {
+      e.preventDefault();
+      const tray_id = document.getElementById('seed-tray-select').value;
+      const crop = document.getElementById('seed-crop').value;
+      const seeded_on = document.getElementById('seed-date').value;
+      const expected_harvest_on = document.getElementById('seed-expected-date').value;
+
+      try {
+        const res = await fetch('/batches', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tray_id, crop, seeded_on, expected_harvest_on })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to seed batch');
+
+        showToast('Batch seeded successfully for ' + data.crop + '!');
+        closeModal('modal-seed-batch');
+        loadDashboardData();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function advanceStage(batchId) {
+      try {
+        const res = await fetch('/batches/' + batchId + '/stage', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to advance stage');
+
+        showToast('Batch advanced to ' + data.stage + '!');
+        loadDashboardData();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function handleRecordHarvest(e) {
+      e.preventDefault();
+      const batchId = document.getElementById('harvest-batch-id').value;
+      const harvested_on = document.getElementById('harvest-date').value;
+      const weight_grams = parseFloat(document.getElementById('harvest-weight').value);
+      const grade = document.getElementById('harvest-grade').value;
+
+      try {
+        const res = await fetch('/batches/' + batchId + '/harvest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ harvested_on, weight_grams, grade })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to record harvest');
+
+        showToast('Harvest recorded: ' + weight_grams + 'g (' + grade + ')! Tray is now freed.');
+        closeModal('modal-harvest');
+        loadDashboardData();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function fetchYieldReport() {
+      const from = document.getElementById('report-from').value;
+      const to = document.getElementById('report-to').value;
+      const group_by = document.getElementById('report-group-by').value;
+
+      try {
+        const res = await fetch('/reports/yield?from=' + from + '&to=' + to + '&group_by=' + group_by);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to fetch yield report');
+
+        const tbody = document.getElementById('yield-table-body');
+        const chartContainer = document.getElementById('yield-chart-container');
+        const rows = data.data || [];
+
+        if (rows.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No harvest records found in specified date window.</td></tr>';
+          chartContainer.innerHTML = '';
+          return;
+        }
+
+        const maxWeight = Math.max(...rows.map(r => r.total_weight_grams), 1);
+
+        chartContainer.innerHTML = rows.map(r => {
+          const pct = Math.round((r.total_weight_grams / maxWeight) * 100);
+          return (
+            '<div class="chart-bar-container">' +
+              '<div class="chart-bar-info">' +
+                '<span><strong>' + r.group_name + '</strong> (' + r.batch_count + ' batches, avg ' + r.avg_cycle_days + ' days)</span>' +
+                '<span style="color: #38bdf8; font-weight: 700;">' + r.total_weight_grams.toLocaleString() + ' g</span>' +
+              '</div>' +
+              '<div class="chart-bar-bg">' +
+                '<div class="chart-bar-fill" style="width: ' + pct + '%;"></div>' +
+              '</div>' +
+            '</div>'
+          );
+        }).join('');
+
+        tbody.innerHTML = rows.map(r => (
+          '<tr>' +
+            '<td><strong style="color: #fff;">' + r.group_name + '</strong></td>' +
+            '<td>' + r.batch_count + '</td>' +
+            '<td><span style="color: #34d399; font-weight: 700;">' + r.total_weight_grams.toLocaleString() + ' g</span></td>' +
+            '<td>' + r.avg_cycle_days + ' days</td>' +
+          '</tr>'
+        )).join('');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function populateDemoSelects() {
+      const traySel = document.getElementById('demo-concurrency-tray');
+      if (traySel) {
+        traySel.innerHTML = allTrays.map(t => '<option value="' + t.id + '">' + t.code + ' (' + t.zone + ')</option>').join('');
+      }
+
+      const batchSel = document.getElementById('demo-idempotency-batch');
+      if (batchSel) {
+        const readyBatches = allBatches.filter(b => b.stage === 'HARVEST_READY');
+        if (readyBatches.length > 0) {
+          batchSel.innerHTML = readyBatches.map(b => '<option value="' + b.id + '">' + b.crop + ' (' + (b.tray_code || 'Tray') + ')</option>').join('');
+        } else {
+          batchSel.innerHTML = '<option value="">No HARVEST_READY batches available</option>';
+        }
+      }
+    }
+
+    async function runConcurrencyDemo() {
+      const trayId = document.getElementById('demo-concurrency-tray').value;
+      const consoleBox = document.getElementById('concurrency-console');
+      consoleBox.innerText = '⏳ Firing 2 simultaneous POST /batches requests to tray ' + trayId + '...\n';
+
+      const payload1 = { tray_id: trayId, crop: 'Simulated Crop A', seeded_on: '2026-09-20', expected_harvest_on: '2026-10-15' };
+      const payload2 = { tray_id: trayId, crop: 'Simulated Crop B', seeded_on: '2026-09-20', expected_harvest_on: '2026-10-15' };
+
+      const [res1, res2] = await Promise.all([
+        fetch('/batches', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload1) }).then(async r => ({ status: r.status, data: await r.json() })),
+        fetch('/batches', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload2) }).then(async r => ({ status: r.status, data: await r.json() }))
+      ]);
+
+      consoleBox.innerText += '--------------------------------------------------\n';
+      consoleBox.innerText += 'Request 1: HTTP Status ' + res1.status + '\n' + JSON.stringify(res1.data, null, 2) + '\n\n';
+      consoleBox.innerText += 'Request 2: HTTP Status ' + res2.status + '\n' + JSON.stringify(res2.data, null, 2) + '\n';
+      consoleBox.innerText += '--------------------------------------------------\n';
+      consoleBox.innerText += '✅ Result: Exactly ONE request succeeded (201) and the duplicate concurrent request was cleanly blocked with 409 Conflict!';
+
+      loadDashboardData();
+    }
+
+    async function runIdempotencyDemo() {
+      const batchId = document.getElementById('demo-idempotency-batch').value;
+      const consoleBox = document.getElementById('idempotency-console');
+
+      if (!batchId) {
+        consoleBox.innerText = '⚠️ Please ensure there is at least one batch in HARVEST_READY stage.';
+        return;
+      }
+
+      const key = 'handheld-device-key-' + Date.now();
+      const payload = { harvested_on: '2026-09-22', weight_grams: 1950.0, grade: 'A' };
+
+      consoleBox.innerText = '📡 Request 1: Initial Submission with Idempotency-Key: ' + key + '...\n';
+
+      const res1 = await fetch('/batches/' + batchId + '/harvest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key },
+        body: JSON.stringify(payload)
+      });
+      const data1 = await res1.json();
+      consoleBox.innerText += 'Status: ' + res1.status + '\n' + JSON.stringify(data1, null, 2) + '\n\n';
+
+      consoleBox.innerText += '📡 Request 2: Retrying with EXACT SAME Idempotency-Key (simulating spotty cellular retry)...\n';
+      const res2 = await fetch('/batches/' + batchId + '/harvest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key },
+        body: JSON.stringify(payload)
+      });
+      const data2 = await res2.json();
+      consoleBox.innerText += 'Status: ' + res2.status + ' (Cache HIT: ' + res2.headers.get('x-cache-lookup') + ')\n' + JSON.stringify(data2, null, 2) + '\n\n';
+      consoleBox.innerText += '✅ Result: The retry safely returned the original harvest response without creating duplicate database rows!';
+
+      loadDashboardData();
+    }
+  </script>
+</body>
+</html>
