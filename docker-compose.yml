@@ -18,5 +18,23 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agresearch_api
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/agresearch_db
+      IDEMPOTENCY_TTL_HOURS: 24
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   pgdata:
